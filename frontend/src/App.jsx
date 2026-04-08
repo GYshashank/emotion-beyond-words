@@ -71,11 +71,21 @@ const App = () => {
   };
 
   const getAggregatedData = () => {
-    const counts = {};
+    if (batchResults.length === 0) return [];
+    
+    // Calculate total scores for each emotion across all results
+    const totals = { Joy: 0, Anger: 0, Fear: 0, Sadness: 0, Trust: 0, Anticipation: 0 };
     batchResults.forEach(r => {
-      counts[r.emotion] = (counts[r.emotion] || 0) + 1;
+      Object.keys(totals).forEach(emo => {
+        totals[emo] += (r.scores[emo] || 0);
+      });
     });
-    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+
+    // Return the average intensity for each emotion
+    return Object.entries(totals).map(([name, value]) => ({ 
+      name, 
+      value: value / batchResults.length 
+    }));
   };
 
   const getScoreData = (scores) => {
@@ -187,7 +197,7 @@ const App = () => {
                   <span key={emo} className="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-bold flex items-center space-x-1 border border-slate-200 dark:border-slate-700">
                     <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: EMOTION_COLORS[emo] }}></div>
                     <span className="capitalize">{emo}</span>
-                    <span className="opacity-60">{(score * 100).toFixed(0)}%</span>
+                    <span className="opacity-60">{(score * 100).toFixed(2)}%</span>
                   </span>
                 ))}
               </div>
@@ -218,7 +228,7 @@ const App = () => {
                             <span className="text-slate-700 dark:text-slate-300">{emo}</span>
                           </span>
                           <span className="font-mono text-xs font-bold text-slate-500">
-                            {(score * 100).toFixed(1)}%
+                            {(score * 100).toFixed(2)}%
                           </span>
                         </div>
                         <div className="w-full bg-slate-100 dark:bg-slate-800/50 rounded-full h-2.5 overflow-hidden">
@@ -259,7 +269,7 @@ const App = () => {
                         <RechartsTooltip 
                           contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
                           itemStyle={{ color: '#f8fafc' }}
-                          formatter={(value) => `${(value * 100).toFixed(1)}%`}
+                          formatter={(value) => `${(value * 100).toFixed(2)}%`}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -303,7 +313,11 @@ const App = () => {
                         <Cell key={`cell-${index}`} fill={EMOTION_COLORS[entry.name]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value) => `${(value * 100).toFixed(1)}%`} />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                      itemStyle={{ color: '#f8fafc' }}
+                      formatter={(value) => `${(value * 100).toFixed(2)}%`} 
+                    />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -315,7 +329,11 @@ const App = () => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <RechartsTooltip formatter={(value) => `${(value * 100).toFixed(1)}%`} />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                      itemStyle={{ color: '#f8fafc' }}
+                      formatter={(value) => `${(value * 100).toFixed(2)}%`} 
+                    />
                     <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]}>
                        {getAggregatedData().map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={EMOTION_COLORS[entry.name]} />
@@ -354,7 +372,7 @@ const App = () => {
                               }}
                             >
                               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-50">
-                                {emo}: {((res.scores[emo] || 0) * 100).toFixed(1)}%
+                                {emo}: {((res.scores[emo] || 0) * 100).toFixed(2)}%
                               </div>
                             </div>
                           ))}
@@ -362,7 +380,7 @@ const App = () => {
                       </td>
                       <td className="px-6 py-4 text-sm text-right font-mono font-bold">
                         <span style={{ color: EMOTION_COLORS[res.emotion] }}>
-                          {(Math.max(...Object.values(res.scores)) * 100).toFixed(1)}%
+                          {(Math.max(...Object.values(res.scores)) * 100).toFixed(2)}%
                         </span>
                       </td>
                     </tr>

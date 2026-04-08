@@ -42,50 +42,47 @@ class MultiDimensionEmotionModel:
     def analyze_text(self, text: str) -> Dict[str, Any]:
         """
         Analyze a single string for emotion probabilities.
-        Provides a 6-way multidimensional distribution.
+        Provides a 6-way deterministic multidimensional distribution.
         """
         clean_text = self.preprocess_text(text).lower()
         
-        # Heuristic-based multidimensional mock
-        base_probs = {
-            "Joy": 0.05,
-            "Anger": 0.05,
-            "Fear": 0.05,
-            "Sadness": 0.05,
-            "Trust": 0.05,
-            "Anticipation": 0.05
+        # Comprehensive keyword map with relative weights
+        emotion_lexicon = {
+            "Joy": ["happy", "great", "fantastic", "amazing", "joy", "love", "excellent", "thrilled", "wonderful", "delight", "cheer", "bliss", "glad"],
+            "Anger": ["angry", "mad", "worst", "hate", "terrible", "annoying", "frustrated", "furious", "outrage", "offend", "disgust", "revolt"],
+            "Fear": ["scared", "fear", "nervous", "anxious", "worried", "panic", "dread", "fright", "terror", "apprehend", "unease"],
+            "Sadness": ["sad", "unhappy", "cry", "pity", "sorry", "gloomy", "depress", "grief", "mourn", "lonely", "despair", "misery"],
+            "Trust": ["trust", "believe", "agree", "together", "friend", "loyal", "reliable", "honest", "secure", "confident", "support"],
+            "Anticipation": ["wait", "soon", "future", "look forward", "upcoming", "excited", "hope", "predict", "plan", "prepare", "eager"]
         }
 
-        # Boost specific emotions based on keywords
-        if any(word in clean_text for word in ["happy", "thrilled", "great", "fantastic", "amazing", "joy"]):
-            base_probs["Joy"] += 0.70
-        elif any(word in clean_text for word in ["angry", "mad", "worst", "hate", "terrible", "annoying"]):
-            base_probs["Anger"] += 0.70
-        elif any(word in clean_text for word in ["scared", "fear", "nervous", "anxious", "worried"]):
-            base_probs["Fear"] += 0.70
-        elif any(word in clean_text for word in ["sad", "unhappy", "cry", "pity", "sorry", "gloomy"]):
-            base_probs["Sadness"] += 0.70
-        elif any(word in clean_text for word in ["trust", "believe", "agree", "together", "friend", "loyal"]):
-            base_probs["Trust"] += 0.70
-        elif any(word in clean_text for word in ["look forward", "upcoming", "excited", "wait", "soon", "future"]):
-            base_probs["Anticipation"] += 0.70
-        else:
-            base_probs["Anticipation"] += 0.20 # Default
+        # Initialize baseline (very low baseline to ensure keywords drive results)
+        scores = {emo: 0.01 for emo in emotion_lexicon.keys()}
 
-        # Add slight randomness
-        for k in base_probs:
-            base_probs[k] += np.random.uniform(0.01, 0.05)
-            
-        # Normalize
-        total = sum(base_probs.values())
-        probs = {k: v/total for k, v in base_probs.items()}
+        # Multi-category scoring: check all words and count occurrences
+        words = clean_text.split()
+        for word in words:
+            for emotion, keywords in emotion_lexicon.items():
+                if any(kw in word for kw in keywords):
+                    scores[emotion] += 1.0
+
+        # If no keywords found, provide a balanced baseline
+        if sum(scores.values()) <= 0.06: # 0.01 * 6
+            scores["Anticipation"] = 0.20 # Neutral default
+            for emo in scores:
+                if emo != "Anticipation":
+                    scores[emo] = 0.05
+
+        # Normalize to exactly 1.0
+        total = sum(scores.values())
+        final_probs = {k: v/total for k, v in scores.items()}
 
         # Map highest to primary emotion
-        primary = max(probs, key=lambda k: probs[k])
+        primary = max(final_probs, key=lambda k: final_probs[k])
         
         return {
             "emotion": primary,
-            "scores": probs
+            "scores": final_probs
         }
 
     def analyze_batch(self, texts: List[str]) -> List[Dict[str, Any]]:
