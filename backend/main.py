@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
@@ -23,6 +23,9 @@ class TextRequest(BaseModel):
 def read_root():
     return {"message": "Welcome to Emotion Beyond Words API"}
 
+api_router = APIRouter()
+
+@api_router.post("/analyze/text")
 @app.post("/analyze/text")
 def analyze_text(request: TextRequest):
     result = ml_engine.analyze_text(request.text)
@@ -32,6 +35,7 @@ def analyze_text(request: TextRequest):
         "scores": result["scores"]
     }
 
+@api_router.post("/analyze/csv")
 @app.post("/analyze/csv")
 async def analyze_csv(file: UploadFile = File(...)):
     try:
@@ -66,3 +70,5 @@ async def analyze_csv(file: UploadFile = File(...)):
     except Exception as e:
         print(f"CSV Analysis Error: {e}")
         return {"results": [], "error": str(e)}
+
+app.include_router(api_router, prefix="/api")
