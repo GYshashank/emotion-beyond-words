@@ -1,29 +1,16 @@
-# Emotion Beyond Words
+# React + Vite
 
-A modern web application for multidimensional emotion analysis.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Features
-- **Real-time Detection**: Classify text into Joy, Anger, Fear, Sadness, Trust, and Anticipation.
-- **Batch Processing**: Upload CSV files for large-scale dataset analysis.
-- **Visual Dashboard**: Interactive charts (Pie/Bar) and detailed probability breakdowns.
-- **Modern UI**: Dark/Light mode, responsive design, and smooth animations.
+Currently, two official plugins are available:
 
-## Setup Instructions
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-### 1. Backend (Python)
-- Install dependencies: `pip install -r backend/requirements.txt`
-- Run the backend: `python run.py` (alternatively, `uvicorn backend.main:app --reload`)
+## React Compiler
 
-### 2. Frontend (React)
-- Navigate to frontend: `cd frontend`
-- Install packages: `npm install`
-- Run dev server: `npm run dev`
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Dataset Format
-For CSV uploads, ensure your file contains a `text` column. The system will automatically detect and process it.
+## Expanding the ESLint configuration
 
-## Tech Stack
-- **ML**: HuggingFace Transformers (BERT/DistilRoBERTa)
-- **Backend**: FastAPI
-- **Frontend**: React (Vite) + Tailwind CSS
-- **Visualization**: Recharts
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
