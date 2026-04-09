@@ -5,11 +5,11 @@ import time
 
 def run_backend():
     print("🚀 Starting FastAPI Backend...")
-    return subprocess.Popen([sys.executable, "-m", "uvicorn", "index:app", "--reload", "--port", "8000"], cwd="api")
+    return subprocess.Popen([sys.executable, "-m", "uvicorn", "main:app", "--reload", "--port", "8000"], cwd="backend")
 
 def run_frontend():
     print("🎨 Starting Vite Frontend...")
-    return subprocess.Popen(["npm", "run", "dev"], shell=True)
+    return subprocess.Popen(["npm", "run", "dev"], shell=True, cwd="frontend")
 
 if __name__ == "__main__":
     backend_proc = None
