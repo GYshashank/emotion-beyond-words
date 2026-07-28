@@ -1,15 +1,11 @@
 import re
-import string
-import numpy as np
 from typing import List, Dict, Any
 
-import torch
-from transformers import pipeline
 
 class MultiDimensionEmotionModel:
     def __init__(self):
-        # We use j-hartmann/emotion-english-distilroberta-base 
-        # which predicts: anger, disgust, fear, joy, neutral, sadness, surprise
+        # We use a deterministic keyword-lexicon approach mapped to 6
+        # core emotions: anger, disgust, fear, joy, neutral, sadness
         self.emotions_map = {
             "joy": "Joy",
             "anger": "Anger",
@@ -19,11 +15,10 @@ class MultiDimensionEmotionModel:
             "neutral": "Anticipation",
             "disgust": "Anger"
         }
-        
-        # Heavy model loading is disabled for speed performance
+
+        # Heavy transformer model loading is disabled for speed/size —
+        # this engine runs on a lightweight keyword lexicon instead.
         self.classifier = None
-
-
 
     def preprocess_text(self, text: str) -> str:
         """
@@ -45,7 +40,7 @@ class MultiDimensionEmotionModel:
         Provides a 6-way deterministic multidimensional distribution.
         """
         clean_text = self.preprocess_text(text).lower()
-        
+
         # Comprehensive keyword map with relative weights
         emotion_lexicon = {
             "Joy": ["happy", "great", "fantastic", "amazing", "joy", "love", "excellent", "thrilled", "wonderful", "delight", "cheer", "bliss", "glad"],
@@ -67,19 +62,19 @@ class MultiDimensionEmotionModel:
                     scores[emotion] += 1.0
 
         # If no keywords found, provide a balanced baseline
-        if sum(scores.values()) <= 0.06: # 0.01 * 6
-            scores["Anticipation"] = 0.20 # Neutral default
+        if sum(scores.values()) <= 0.06:  # 0.01 * 6
+            scores["Anticipation"] = 0.20  # Neutral default
             for emo in scores:
                 if emo != "Anticipation":
                     scores[emo] = 0.05
 
         # Normalize to exactly 1.0
         total = sum(scores.values())
-        final_probs = {k: v/total for k, v in scores.items()}
+        final_probs = {k: v / total for k, v in scores.items()}
 
         # Map highest to primary emotion
         primary = max(final_probs, key=lambda k: final_probs[k])
-        
+
         return {
             "emotion": primary,
             "scores": final_probs
@@ -87,5 +82,6 @@ class MultiDimensionEmotionModel:
 
     def analyze_batch(self, texts: List[str]) -> List[Dict[str, Any]]:
         return [self.analyze_text(t) for t in texts]
+
 
 ml_engine = MultiDimensionEmotionModel()

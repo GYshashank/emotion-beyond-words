@@ -10,7 +10,11 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+// In production (Vercel) this resolves to a relative "/api", which
+// matches the "/api/(.*)" rewrite in vercel.json — no env var needed.
+// In local dev it points at the FastAPI server's /api-prefixed routes.
+// Set VITE_API_URL explicitly if you deploy the backend elsewhere (e.g. Render).
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://127.0.0.1:8000/api');
 
 const EMOTION_COLORS = {
   Joy: '#FBBF24',

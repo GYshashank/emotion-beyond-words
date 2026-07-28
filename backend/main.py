@@ -16,14 +16,22 @@ app.add_middleware(
 
 from ml_engine import ml_engine
 
+# All routes live under /api so they line up with vercel.json's
+# "/api/(.*)" rewrite rule (Vercel forwards the full original path,
+# it does not strip the /api prefix for you).
+router = APIRouter(prefix="/api")
+
+
 class TextRequest(BaseModel):
     text: str
 
-@app.get("/")
+
+@router.get("/")
 def read_root():
     return {"message": "Welcome to Emotion Beyond Words API"}
 
-@app.post("/analyze/text")
+
+@router.post("/analyze/text")
 def analyze_text(request: TextRequest):
     result = ml_engine.analyze_text(request.text)
     return {
@@ -32,27 +40,28 @@ def analyze_text(request: TextRequest):
         "scores": result["scores"]
     }
 
-@app.post("/analyze/csv")
+
+@router.post("/analyze/csv")
 async def analyze_csv(file: UploadFile = File(...)):
     try:
         contents = await file.read()
         # Handle various encodings common in CSVs
         try:
-            text_data = contents.decode('utf-8-sig') # Handles BOM
+            text_data = contents.decode('utf-8-sig')  # Handles BOM
         except UnicodeDecodeError:
             text_data = contents.decode('latin-1')
-            
+
         df = pd.read_csv(io.StringIO(text_data))
-        
+
         if df.empty:
             return {"results": [], "error": "CSV file is empty"}
 
         # Analyze all texts
         column_to_analyze = 'text' if 'text' in df.columns else df.columns[0]
         texts = df[column_to_analyze].astype(str).tolist()
-        
+
         analysis_results = ml_engine.analyze_batch(texts)
-        
+
         results = []
         for index, row in df.iterrows():
             results.append({
@@ -61,8 +70,11 @@ async def analyze_csv(file: UploadFile = File(...)):
                 "emotion": analysis_results[index]["emotion"],
                 "scores": analysis_results[index]["scores"]
             })
-            
+
         return {"results": results}
     except Exception as e:
         print(f"CSV Analysis Error: {e}")
         return {"results": [], "error": str(e)}
+
+
+app.include_router(router)
