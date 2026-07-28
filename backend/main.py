@@ -1,3 +1,12 @@
+import sys
+import os
+
+# Vercel's Python runtime executes this file with the repo root on
+# sys.path, not this file's own folder — so a plain "import ml_engine"
+# fails with ModuleNotFoundError even though ml_engine.py sits right
+# next to main.py. Adding this directory explicitly fixes that.
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from fastapi import FastAPI, File, UploadFile, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
